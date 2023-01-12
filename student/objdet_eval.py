@@ -13,7 +13,7 @@
 # general package imports
 import numpy as np
 import matplotlib
-matplotlib.use('wxagg') # change backend so that figure maximizing works on Mac as well     
+#matplotlib.use('wxagg') # change backend so that figure maximizing works on Mac as well     
 import matplotlib.pyplot as plt
 
 import torch
@@ -29,6 +29,7 @@ sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, PACKAGE_PARENT)))
 
 # object detection tools and helper functions
 import misc.objdet_tools as tools
+from shapely.geometry import Polygon
 
 
 # compute various performance measures to assess object detection
@@ -49,25 +50,74 @@ def measure_detection_performance(detections, labels, labels_valid, min_iou=0.5)
             print("student task ID_S4_EX1 ")
 
             ## step 1 : extract the four corners of the current label bounding-box
+            print ('label type',type(label))
+            label_bbox = label.box
+            print ('label_bbox',label_bbox)
             
+            #compute_box_corners(x,y,w,l,yaw)
+            label_corners = tools.compute_box_corners(label_bbox.center_x, label_bbox.center_y,label_bbox.width,label_bbox.length,
+                                                     label_bbox.heading)
+            
+            print ('label_corners',label_corners)
+            
+
             ## step 2 : loop over all detected objects
+            for d in detections:
+                print ('det',d)
+                # det format [1, x, y, z, h, w, l, yaw]
+                #compute_box_corners(x,y,w,l,yaw)
+                x = d[1]
+                y = d[2]
+                z = d[3]
+                w = d[5]
+                l = d[6]
+                yaw = d[7]
+                detection_corners = tools.compute_box_corners(x,y,w,l,yaw)
+                
 
                 ## step 3 : extract the four corners of the current detection
                 
+                print ('detection_corners',detection_corners)
+                
+                
                 ## step 4 : computer the center distance between label and detection bounding-box in x, y, and z
+                dist_x = label_bbox.center_x - x
+                dist_y = label_bbox.center_y - y
+                dist_z = label_bbox.center_z - z
+                
                 
                 ## step 5 : compute the intersection over union (IOU) between label and detection bounding-box
+                label_polygon = Polygon(label_corners)
+                detected_polygon = Polygon(detection_corners)
+                intersection = label_polygon.intersection(detected_polygon).area
+                union = label_polygon.union(detected_polygon).area
+                iou = intersection / union
+                
+                
                 
                 ## step 6 : if IOU exceeds min_iou threshold, store [iou,dist_x, dist_y, dist_z] in matches_lab_det and increase the TP count
+                if iou > min_iou:
+                    print ('****good iou',iou)
+                    
+                    matches_lab_det.append([iou,dist_x, dist_y, dist_z])
+                    true_positives += 1
                 
             #######
             ####### ID_S4_EX1 END #######     
-            
+        print ('ious',ious)
+        print ('matches_lab_det',matches_lab_det)
+        print (len(matches_lab_det))
         # find best match and compute metrics
         if matches_lab_det:
             best_match = max(matches_lab_det,key=itemgetter(1)) # retrieve entry with max iou in case of multiple candidates   
             ious.append(best_match[0])
             center_devs.append(best_match[1:])
+            
+        print ('center_devs',center_devs)
+        print ('len center_devs',len(center_devs))
+        
+        print ('true_positives',true_positives)
+        
 
 
     ####### ID_S4_EX2 START #######     
@@ -76,14 +126,29 @@ def measure_detection_performance(detections, labels, labels_valid, min_iou=0.5)
     
     # compute positives and negatives for precision/recall
     
+
+    
     ## step 1 : compute the total number of positives present in the scene
     all_positives = 0
+    
+    for l in labels_valid:
+        #print ('label valid',l)
+        if l:
+            all_positives +=1 
+    
+    print ('all_positives',all_positives)
+            
 
     ## step 2 : compute the number of false negatives
-    false_negatives = 0
+    false_negatives = all_positives - true_positives
+    
+    print ('false_negatives',false_negatives)
 
     ## step 3 : compute the number of false positives
-    false_positives = 0
+    total_detections = len(detections)
+    false_positives = total_detections - true_positives
+    
+    print ('false_positives',false_positives)
     
     #######
     ####### ID_S4_EX2 END #######     
@@ -105,6 +170,7 @@ def compute_performance_stats(det_performance_all):
         ious.append(item[0])
         center_devs.append(item[1])
         pos_negs.append(item[2])
+    pos_negs_arr = np.asarray(pos_negs)   
     
     ####### ID_S4_EX3 START #######     
     #######    
@@ -112,11 +178,16 @@ def compute_performance_stats(det_performance_all):
 
     ## step 1 : extract the total number of positives, true positives, false negatives and false positives
     
+    
+    true_positives = sum(pos_negs_arr[:,1])
+    false_negatives = sum(pos_negs_arr[:,2])
+    false_positives = sum(pos_negs_arr[:,3])
+    
     ## step 2 : compute precision
-    precision = 0.0
+    precision = true_positives / (true_positives + false_positives)
 
     ## step 3 : compute recall 
-    recall = 0.0
+    recall = true_positives / (true_positives + false_negatives)
 
     #######    
     ####### ID_S4_EX3 END #######     
