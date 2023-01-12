@@ -220,7 +220,21 @@ def detect_objects(input_bev_maps, model, configs):
             ####### ID_S3_EX1-5 START #######     
             #######
             print("student task ID_S3_EX1-5")
-
+            print ('outputs',outputs)
+            outputs['hm_cen'] = _sigmoid(outputs['hm_cen'])
+            outputs['cen_offset'] = _sigmoid(outputs['cen_offset'])
+            
+            detections = decode(outputs['hm_cen'], outputs['cen_offset'], outputs['direction'], outputs['z_coor'],outputs['dim'], K=configs.K)
+            print ('detections after decode',detections)
+            detections = detections.cpu().numpy().astype(np.float32)
+            detections = post_processing(detections, configs)
+            print ('detections after post processing',detections)
+            print ('detections len',len(detections))
+            print ('detections len[0]',len(detections[0]))
+            #detection for vehicles only
+            detections = detections[0][1]
+            print ('vehicle detection',detections)
+            print ('veh det shape',detections.shape)
             #######
             ####### ID_S3_EX1-5 END #######     
 
@@ -234,13 +248,40 @@ def detect_objects(input_bev_maps, model, configs):
 
     ## step 1 : check whether there are any detections
     
+    if len(detections) > 0:
 
         ## step 2 : loop over all detections
-            ## step 3 : perform the conversion using the limits for x, y and z set in the configs structure
+        ## step 3 : perform the conversion using the limits for x, y and z set in the configs structure
 
+        for d in detections:
+            #print ('each d',d)
+            #print ('len d',len(d))
+            det_score, det_x, det_y, det_z, det_h, det_w, det_l, det_yaw = d
+            #print ('det_x',det_x)
+            #print ('det_y',det_y)
+            #print ('det_yaw',det_yaw)
+            
+            bound_size_x = configs.lim_x[1] - configs.lim_x[0]
+            bound_size_y = configs.lim_y[1] - configs.lim_y[0]
+            
+            boundary_min_x = configs.lim_x[0]
+            boundary_min_y = configs.lim_y[0]
+            boundary_min_z = configs.lim_z[0]
+            
+            converted_yaw = -det_yaw
+            converted_x = det_y / configs.bev_height * bound_size_x + boundary_min_x
+            converted_y = det_x / configs.bev_width * bound_size_y + boundary_min_y
+            converted_z = det_z + boundary_min_z
+            converted_w = det_w / configs.bev_width * bound_size_y
+            converted_l = det_l / configs.bev_height * bound_size_x
+            converted_h = det_h
+                
+            converted_d = [1, converted_x, converted_y, converted_z, converted_h, converted_w, converted_l, converted_yaw]
             
             ## step 4 : append the current object to the 'objects' array
-                                       
+            objects.append(converted_d)
+             
+                    
         
     #######
     ####### ID_S3_EX2 START #######   
