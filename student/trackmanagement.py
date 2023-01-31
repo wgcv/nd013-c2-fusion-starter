@@ -26,6 +26,7 @@ class Track:
     '''Track class with state, covariance, id, score'''
     def __init__(self, meas, id):
         print('creating track no.', id)
+        
         M_rot = meas.sensor.sens_to_veh[0:3, 0:3] # rotation matrix from sensor to vehicle coordinates
         
         ############
@@ -35,20 +36,57 @@ class Track:
         # - initialize track state and track score with appropriate values
         ############
 
-        self.x = np.matrix([[49.53980697],
-                        [ 3.41006279],
-                        [ 0.91790581],
-                        [ 0.        ],
-                        [ 0.        ],
-                        [ 0.        ]])
-        self.P = np.matrix([[9.0e-02, 0.0e+00, 0.0e+00, 0.0e+00, 0.0e+00, 0.0e+00],
-                        [0.0e+00, 9.0e-02, 0.0e+00, 0.0e+00, 0.0e+00, 0.0e+00],
-                        [0.0e+00, 0.0e+00, 6.4e-03, 0.0e+00, 0.0e+00, 0.0e+00],
-                        [0.0e+00, 0.0e+00, 0.0e+00, 2.5e+03, 0.0e+00, 0.0e+00],
-                        [0.0e+00, 0.0e+00, 0.0e+00, 0.0e+00, 2.5e+03, 0.0e+00],
-                        [0.0e+00, 0.0e+00, 0.0e+00, 0.0e+00, 0.0e+00, 2.5e+01]])
-        self.state = 'confirmed'
-        self.score = 0
+#         self.x = np.matrix([[49.53980697],
+#                         [ 3.41006279],
+#                         [ 0.91790581],
+#                         [ 0.        ],
+#                         [ 0.        ],
+#                         [ 0.        ]])
+#         self.P = np.matrix([[9.0e-02, 0.0e+00, 0.0e+00, 0.0e+00, 0.0e+00, 0.0e+00],
+#                         [0.0e+00, 9.0e-02, 0.0e+00, 0.0e+00, 0.0e+00, 0.0e+00],
+#                         [0.0e+00, 0.0e+00, 6.4e-03, 0.0e+00, 0.0e+00, 0.0e+00],
+#                         [0.0e+00, 0.0e+00, 0.0e+00, 2.5e+03, 0.0e+00, 0.0e+00],
+#                         [0.0e+00, 0.0e+00, 0.0e+00, 0.0e+00, 2.5e+03, 0.0e+00],
+#                         [0.0e+00, 0.0e+00, 0.0e+00, 0.0e+00, 0.0e+00, 2.5e+01]])
+#         self.state = 'confirmed'
+#         self.score = 0
+        
+        ## ex
+        # transform measurement to vehicle coordinates
+        pos_sens = np.ones((4, 1)) # homogeneous coordinates
+        pos_sens[0:3] = meas.z[0:3] 
+        pos_veh = meas.sensor.sens_to_veh*pos_sens
+        
+        # save initial state from measurement
+        self.x = np.zeros((6,1))
+        self.x[0:3] = pos_veh[0:3]
+        
+        # set up position estimation error covariance
+        #M_rot = meas.sens_to_veh[0:3, 0:3]
+        P_pos = M_rot * meas.R * np.transpose(M_rot)
+        
+        # set up velocity estimation error covariance
+        sigma_p44 = params.sigma_p44 # initial setting for estimation error covariance P entry for vx
+        sigma_p55 = params.sigma_p55 # initial setting for estimation error covariance P entry for vy
+        sigma_p66 = params.sigma_p66 # initial setting for estimation error covariance P entry for vz
+        
+        velocity_estimation_error_covariance = np.matrix([[sigma_p44**2, 0, 0],
+                        [0, sigma_p55**2, 0],
+                        [0, 0, sigma_p66**2]])
+        
+        P_vel = velocity_estimation_error_covariance
+        
+        # overall covariance initialization
+        self.P = np.zeros((6, 6))
+        self.P[0:3, 0:3] = P_pos
+        self.P[3:6, 3:6] = P_vel
+        
+        self.state = 'initialized'
+        self.score = 1./params.window
+        #for debugging
+        #self.state = 'confirmed'
+        
+        ##ex
         
         ############
         # END student code
@@ -106,10 +144,27 @@ class Trackmanagement:
             # check visibility    
             if meas_list: # if not empty
                 if meas_list[0].sensor.in_fov(track.x):
+                    print ('check visibility')
                     # your code goes here
-                    pass 
+                    track.score -= 1./params.window
+                    print ('track.score for unassigned track',track.score)
+                    #pass 
 
         # delete old tracks   
+        for track in self.track_list:
+            #print ('check all tracks track.state', track.state)
+            #print ('check all tracks track.score', track.score)
+            #print ('covariance track.P[0,0] ',track.P[0,0] )
+            #print ('covariance track.P[1,1]',track.P[1,1])
+            #print ('params.max_P',params.max_P)
+
+            if track.state in ('tentative','initialized') and (track.P[0,0] > params.max_P or track.P[1,1] > params.max_P):                
+                self.delete_track(track)
+            elif track.state == 'confirmed' and track.score < params.delete_threshold:
+                self.delete_track(track)
+            elif (track.P[0,0] > params.max_P or track.P[1,1] > params.max_P):
+                self.delete_track(track)
+           
 
         ############
         # END student code
@@ -140,7 +195,19 @@ class Trackmanagement:
         # - set track state to 'tentative' or 'confirmed'
         ############
 
-        pass
+        #pass
+        
+        track.score += 1./params.window
+
+        #print ('track.score in handle updated', track.score)
+        
+        if track.score > params.confirmed_threshold:
+            track.state = 'confirmed'
+        else:
+            track.state = 'tentative'
+            
+        
+            
         
         ############
         # END student code
