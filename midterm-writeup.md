@@ -23,5 +23,10 @@ When the code is functional, you are supposed to use the viewer to locate and cl
 ### Car Windshield
 ![front_windshield](https://user-images.githubusercontent.com/8989089/236043560-2c42257a-7f0e-4570-b784-f3da0e4e655d.jpg)
 
+### Identify Vehicles
+![car_detail_1](https://user-images.githubusercontent.com/8989089/236905821-ff5b4cfa-ed95-4557-a17e-28e466917f4c.jpg)
+![car_detail_2](https://user-images.githubusercontent.com/8989089/236905845-1032a5a3-253f-43f6-a43a-4d8d516d3154.jpg)
+
 ## Object Detection and BEV
 <img width="603" alt="Screenshot 2023-05-03 at 3 11 17 PM" src="https://user-images.githubusercontent.com/8989089/236043680-b6560dcf-758d-47e3-958c-44e7da549ac2.png">
+
