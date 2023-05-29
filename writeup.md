@@ -38,17 +38,19 @@ We use nearest neighbor association for associate measurements to track, so now 
 <img width="1642" alt="Screenshot 2023-05-29 at 12 26 16 PM" src="https://github.com/wgcv/nd013-c2-fusion-starter/assets/8989089/371b5047-7ea4-4df9-8745-58c6bfa803ae">
 We can see that the fov on lidar larger than the camera fov, because we can confirm a vehicle before see on the camera.
 
-#### Step 4: Sensor Fusion module
+#### Step 4: Sensor Fusion Module
 Use lidar and camera to measurment when are in the FOV
 <img width="1652" alt="Screenshot 2023-05-29 at 1 41 15 PM" src="https://github.com/wgcv/nd013-c2-fusion-starter/assets/8989089/09565c9c-d61a-41a8-aa13-d921f9eb0a4f">
 
 The task of Track Measurement Association proved to be the most challenging for me. It required a thorough understanding of transformations, and debugging it was particularly difficult. As a result, it consumed a significant amount of time and effort before I could finally achieve the desired outcome.
 
 ### 2. Do you see any benefits in camera-lidar fusion compared to lidar-only tracking (in theory and in your concrete results)? 
-
+Having a robust Sensor Fusion Module and utilizing multiple sensors can significantly enhance the results and safety of driving systems. Cameras excel in object recognition, but they may struggle with accurate distance measurement and have blind spots when obstacles obstruct their view. On the other hand, lidar is proficient in measuring distances and avoiding obstacles, but its object classification capabilities can be limited. Moreover, lidar generally outperforms cameras in challenging weather conditions like fog, rain, or snow. While the project might not have shown a substantial improvement in reducing the root mean square error (RMSE), it is crucial to prioritize safety by integrating multiple sensors and adopting a conservative approach. This approach can mitigate risks and ensure safer driving experiences.
 
 ### 3. Which challenges will a sensor fusion system face in real-life scenarios? Did you see any of these challenges in the project?
+In real-life driving scenarios, there is a wide range of diverse factors that can impact the driving experience. These include factors such as roads that are not accurately mapped or may be outdated, unexpected events like accidents or roadblocks caused by police officers, pedestrians with varying cultural backgrounds and clothing styles (which can present challenges, especially in regions with different religious or cultural norms), cyclists, and the emergence of new types of light vehicles or different vehicle models.
 
+Furthermore, weather conditions can significantly affect the performance of driving systems, just as they impact human drivers. Having a greater number of sensors (considering the current drive system is not designed for self-driving cars) and a diverse range of data becomes crucial for ensuring safety. In the project you mentioned, it's evident that incorporating more sensors leads to a better understanding of the environment, allowing the system to adapt and respond appropriately to the various challenges presented by real-world driving scenarios.
 
 ### 4. Can you think of ways to improve your tracking results in the future?
 
