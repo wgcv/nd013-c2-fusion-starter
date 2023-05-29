@@ -133,3 +133,8 @@ There were some challenges for the system in the project. There were some trees 
 # 4. Can you think of ways to improve your tracking results in the future?
 
 One easy way would be fuse together even more sensors from like more lidars and more cameras. Also individual sections can probably made better with more complex algorithms. Track management and Track measurement association can probably be improved with more sophisticated algorithms.
+
+
+
+https://github.com/venkatram-dev/nd013-c2-fusion-starter/assets/8989089/a4a4178c-d6cd-4099-9f9c-ab2ba3c9a189
+
