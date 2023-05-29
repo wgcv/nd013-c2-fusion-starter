@@ -57,3 +57,8 @@ Furthermore, weather conditions can significantly affect the performance of driv
 While sophisticated algorithms, additional sensors, and more data are often mentioned as important factors, I believe that the diversity of data is of utmost importance. By incorporating data from various locations worldwide, we can capture a wide range of scenarios for object detection and driving behavior. This diversity is crucial because driving styles can vary significantly, from aggressive to respectful, depending on the specific city or region.
 
 Moreover, including diverse data enables us to improve tracking capabilities by incorporating different types of vehicles, brands, and models. By leveraging data diversity from various sensors and cameras, we can develop more generalized algorithms. This approach reduces the need for extensive customization for each specific camera or sensor model. Instead, our algorithms can be fine-tuned on a smaller scale while benefiting from the broader range of data. This diverse data not only enhances overall performance but also helps create a more comprehensive and adaptable driving system.
+
+## Video
+
+https://github.com/wgcv/nd013-c2-fusion-starter/assets/8989089/ec07e87d-bdd8-48be-a4e6-557deaf0f3cb
+
